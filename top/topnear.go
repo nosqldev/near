@@ -15,6 +15,6 @@ import(
     index "../index"
 )
 
-var poi_indices[]
+var poi_indices index.POI_index
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 foldmethod=marker: */
