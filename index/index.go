@@ -3,7 +3,7 @@
  * +----------------------------------------------------------------------+
  * | index of POI                                                         |
  * +----------------------------------------------------------------------+
- * | Author: jingmi@gmail.com                                             |
+ * | Author: nosqldev@gmail.com                                           |
  * +----------------------------------------------------------------------+
  * | Created: 2012-06-23 12:23                                            |
  * +----------------------------------------------------------------------+
@@ -19,22 +19,21 @@ import (
 
 const (
     default_size = 1000000
-    max_near_poi_count = 10000
 )
 
-type poi_1d_item struct {
+type Poi_1d_item_t struct {
     XY float64 /* X or Y of a given POI */
     ID uint32  /* index referred to GuidArray belongs to POI_index */
 }
-type poi_1d_slice []poi_1d_item
+type Poi_1d_slice_t []Poi_1d_item_t
 type POI_Item struct {
     GUID uint64
     X float64
     Y float64
 }
 type POI_index struct {
-    PoiXIdx []poi_1d_item
-    PoiYIdx []poi_1d_item
+    PoiXIdx Poi_1d_slice_t
+    PoiYIdx Poi_1d_slice_t
     GuidArray []POI_Item
 }
 
@@ -53,12 +52,12 @@ func LoadPOI(reader io.Reader) (poi_idx *POI_index, retval int) {
     var tmp_X, tmp_Y float64
     var guid uint64
     var poi_item POI_Item
-    var poi_x_item poi_1d_item
-    var poi_y_item poi_1d_item
+    var poi_x_item Poi_1d_item_t
+    var poi_y_item Poi_1d_item_t
     retval = 0
     poi_idx = new(POI_index)
-    poi_idx.PoiXIdx = make([]poi_1d_item, 0, default_size)
-    poi_idx.PoiYIdx = make([]poi_1d_item, 0, default_size)
+    poi_idx.PoiXIdx = make(Poi_1d_slice_t, 0, default_size)
+    poi_idx.PoiYIdx = make(Poi_1d_slice_t, 0, default_size)
     poi_idx.GuidArray = make([]POI_Item, 0, default_size)
 
     for i:=uint32(0); ; i++ {
@@ -91,30 +90,30 @@ func LoadPOI(reader io.Reader) (poi_idx *POI_index, retval int) {
 /* {{{ sortPoiIndex(poi_idx *POI_index)  */
 
 func sortPoiIndex(poi_idx *POI_index) {
-    sort.Sort(poi_1d_slice(poi_idx.PoiXIdx))
-    sort.Sort(poi_1d_slice(poi_idx.PoiYIdx))
+    sort.Sort(Poi_1d_slice_t(poi_idx.PoiXIdx))
+    sort.Sort(Poi_1d_slice_t(poi_idx.PoiYIdx))
 }
 
 /* }}} */
 
-/* {{{ (slice poi_1d_slice) Len () int */
+/* {{{ (slice Poi_1d_slice_t) Len () int */
 
-func (slice poi_1d_slice) Len () int{
+func (slice Poi_1d_slice_t) Len () int{
     return len(slice)
 }
 
 /* }}} */
-/* {{{ (slice poi_1d_slice) Less(i,j int) bool */
+/* {{{ (slice Poi_1d_slice_t) Less(i,j int) bool */
 
-func (slice poi_1d_slice) Less(i,j int) bool{
+func (slice Poi_1d_slice_t) Less(i,j int) bool{
     if slice[i].XY < slice[j].XY { return true }
     return false
 }
 
 /* }}} */
-/* {{{ (slice poi_1d_slice) Swap(i,j int)  */
+/* {{{ (slice Poi_1d_slice_t) Swap(i,j int)  */
 
-func (slice poi_1d_slice) Swap(i,j int) {
+func (slice Poi_1d_slice_t) Swap(i,j int) {
     slice[i], slice[j] = slice[j], slice[i]
 }
 

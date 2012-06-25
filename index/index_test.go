@@ -3,7 +3,7 @@
  * +----------------------------------------------------------------------+
  * | test index package                                                   |
  * +----------------------------------------------------------------------+
- * | Author: jingmi@gmail.com                                             |
+ * | Author: nosqldev@gmail.com                                           |
  * +----------------------------------------------------------------------+
  * | Created: 2012-06-24 11:45                                            |
  * +----------------------------------------------------------------------+
@@ -21,11 +21,11 @@ import(
 
 func Test_verifyIndex(t *testing.T) {
     var poi_idx1 POI_index = POI_index {
-        []poi_1d_item {
+        Poi_1d_slice_t {
             {100.0, 0},
             {200.0, 1},
         },
-        []poi_1d_item {
+        Poi_1d_slice_t {
             {3.0, 0},
             {3.14159265, 1},
         },
@@ -39,11 +39,11 @@ func Test_verifyIndex(t *testing.T) {
     }
 
     var poi_idx2 POI_index = POI_index {
-        []poi_1d_item {
+        Poi_1d_slice_t {
             {100.0, 0},
             {200.0, 1},
         },
-        []poi_1d_item {
+        Poi_1d_slice_t {
             {3.0, 0},
             {3.14159265, 1},
         },
