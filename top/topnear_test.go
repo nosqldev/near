@@ -354,6 +354,22 @@ func TestScanNearPOI(t *testing.T) {
     assert(result[1] == 4)
     assert(result[2] == 3)
     assert(result[3] == 1)
+
+    result = ScanNearPOI(4, 4, poi_idx, 2, 2, cache)
+    assert(len(result) == 2)
+    assert(len(cache) == 6)
+    assert(result[0] == 0)
+    assert(result[1] == 4)
+
+    result = ScanNearPOI(4, 4, poi_idx, 1, 2, cache)
+    assert(len(result) == 1)
+    assert(len(cache) == 6)
+    assert(result[0] == 0)
+
+    result = ScanNearPOI(4, 4, poi_idx, 10, 1.5, cache)
+    assert(len(result) == 1)
+    assert(len(cache) == 6)
+    assert(result[0] == 0)
 }
 
 /* }}} */

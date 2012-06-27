@@ -66,7 +66,7 @@ func ScanNearPOI(x float64, y float64, poi_idx *POI_index, count int, max_distan
     } else {
         result_size = int(math.Min(float64(count), float64(len(result))))
     }
-    sortby_distance(poi_idx.GuidArray, result[:result_size], cache_distances)
+    sortby_distance(poi_idx.GuidArray, result, cache_distances)
 
     return result[:result_size]
 }
