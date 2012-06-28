@@ -14,6 +14,7 @@ package top
 import(
     "sort"
     "math"
+    /*"fmt"*/
     . "../index"
 )
 
@@ -37,9 +38,17 @@ func FetchNearPOI(poi_idx *POI_index, x float64, y float64, count int) (guid_sli
     if retcode != 0 { return nil, -1 }
     result_y, retcode := fetch_from_index_by_count(poi_idx.PoiYIdx, y, count)
     if retcode != 0 { return nil, -2 }
-    result := intersect(result_x, result_y)
-    _, max_distance, cache_distances := find_farthest_poi(poi_idx.GuidArray, x, y, result)
-    result = ScanNearPOI(x, y, poi_idx, count, max_distance, cache_distances)
+    result := union(result_x, result_y)
+    _, distance, cache_distances := find_farthest_poi(poi_idx.GuidArray, x, y, result)
+    //fmt.Println("$$$", count, distance, result, result_x, result_y)
+    var delta float64 = 0.128
+    var max_distance float64 = distance
+    for i := 0; i < 10; i++ {
+        result = ScanNearPOI(x, y, poi_idx, count, max_distance, cache_distances)
+        if len(result) >= count { break }
+        max_distance = distance + delta * math.Pow(2, float64(i))
+        //fmt.Println(max_distance, max_distance - distance)
+    }
     guid_slice = translate_guid(poi_idx.GuidArray, result, x, y)
 
     return
@@ -58,6 +67,8 @@ func ScanNearPOI(x float64, y float64, poi_idx *POI_index, count int, max_distan
     if result == nil { return nil }
     result = filter_by_distance(x, y, poi_idx.GuidArray, result, max_distance, cache_distances)
 
+    //fmt.Println("###", count, max_distance, len(result), len(result_x), len(result_y))
+
     var result_size int
     if count == 0 {
         result_size = len(result)
@@ -71,6 +82,23 @@ func ScanNearPOI(x float64, y float64, poi_idx *POI_index, count int, max_distan
 
 /* }}} */
 
+/* {{{ union(ids1 []uint32, ids2 []uint32) []uint32  */
+
+func union(ids1 []uint32, ids2 []uint32) []uint32 {
+    var hashtable map[uint32]bool = make(map[uint32]bool)
+
+    for _, id := range ids1 { hashtable[id] = true }
+    for _, id := range ids2 { hashtable[id] = true }
+
+    var result []uint32 = make([]uint32, 0, len(hashtable))
+    for id, _ := range hashtable {
+        result = append(result, id)
+    }
+
+    return result
+}
+
+/* }}} */
 /* {{{ sortby_distance(guid_slice []POI_Item, ids []uint32, cache_distances distanceTable_t)  */
 
 /* This function will drop those id which are not caculated in cache_distances!
@@ -127,11 +155,17 @@ func fetch_from_index_by_range(poi_1d_slice Poi_1d_slice_t, v float64, max_dista
     if pos >= len(poi_1d_slice) { pos = len(poi_1d_slice) - 1 }
 
     var start, end int = -1, -1
+    var i int = 0
     for p := pos; p >= 0 && poi_1d_slice[p].XY >= v - max_distance; p-- {
         start = p
+        if i >= max_near_poi_count / 2 { break }
+        i ++
     }
+    i = 0
     for p := pos; p < len(poi_1d_slice) && poi_1d_slice[p].XY <= v + max_distance; p++ {
         end = p
+        if i >= max_near_poi_count / 2 { break }
+        i ++
     }
     if start == -1 || end == -1 { return nil }
     end ++
@@ -253,7 +287,8 @@ func filter_by_distance(x float64, y float64, guid_slice []POI_Item, ids []uint3
             cache_distances[pnt] = distance
         }
 
-        if distance <= max_distance {
+        //fmt.Println("***", id, pnt, distance, x, y)
+        if distance <= max_distance && distance > 0 {
             result_ids = append(result_ids, id)
         }
     }

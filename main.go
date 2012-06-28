@@ -16,6 +16,7 @@ import(
     top "./top"
     "os"
     "fmt"
+    "time"
 )
 
 func main() {
@@ -32,6 +33,7 @@ func main() {
 
     for {
         fmt.Scanf("%f %f %d", &x, &y, &cnt)
+        start_time := time.Now()
         fmt.Printf("got request: [%f %f] %d\n", x, y, cnt)
         guid_slice, ret := top.FetchNearPOI(poi_idx, x, y, cnt)
         if ret != 0 {
@@ -39,9 +41,13 @@ func main() {
             continue
         }
         fmt.Printf("--- amount of results: %d---\n", len(guid_slice))
-        for id, guid := range guid_slice {
-            fmt.Printf("%d, %x\n", id, guid)
+        for _, guid := range guid_slice {
+            /*fmt.Printf("guid = %x, x = %f, y = %f\n", guid, poi_idx.GuidArray[guid].X, poi_idx.GuidArray[guid].Y)*/
+            fmt.Printf("guid = %x\n", guid)
         }
+        end_time := time.Now()
+        elapsed_time := end_time.Sub(start_time)
+        fmt.Println(elapsed_time, "\n")
     }
 }
 
