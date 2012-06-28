@@ -27,7 +27,7 @@ type sort_poi_t struct {
 }
 type sort_poi_slice_t []sort_poi_t
 
-/* {{{ FetchNearPOI(poi_idx *POI_index, X float64, Y float64, count int) (guid_slice []uint64, retval int)  */
+/* {{{ FetchNearPOI(poi_idx *POI_index, x float64, y float64, count int) (guid_slice []uint64, retval int)  */
 
 func FetchNearPOI(poi_idx *POI_index, x float64, y float64, count int) (guid_slice []uint64, retval int) {
     retval = 0
