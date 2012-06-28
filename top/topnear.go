@@ -32,18 +32,16 @@ type sort_poi_slice_t []sort_poi_t
 func FetchNearPOI(poi_idx *POI_index, x float64, y float64, count int) (guid_slice []uint64, retval int) {
     retval = 0
 
-/*
- *    if count > max_near_poi_count/2 { return nil, -100 }
- *    result_x, retcode := fetch_from_index_by_count(poi_idx.PoiXIdx, x, count)
- *    if retcode != 0 { return nil, -1 }
- *    result_y, retcode := fetch_from_index_by_count(poi_idx.PoiYIdx, y, count)
- *    if retcode != 0 { return nil, -2 }
- *    result := intersect(result_x, result_y)
- *    farthest_point, max_distance, cache_distances := find_farthest_poi(poi_idx.GuidArray, x, y, result)
- *    result = ScanNearPOI(x, y, poi_idx, count, max_distance, cache_distances)
- *    guid_slice = translate_guid(poi_idx.GuidArray, result, x, y)
- *
- */
+    if count > max_near_poi_count/2 { return nil, -100 }
+    result_x, retcode := fetch_from_index_by_count(poi_idx.PoiXIdx, x, count)
+    if retcode != 0 { return nil, -1 }
+    result_y, retcode := fetch_from_index_by_count(poi_idx.PoiYIdx, y, count)
+    if retcode != 0 { return nil, -2 }
+    result := intersect(result_x, result_y)
+    _, max_distance, cache_distances := find_farthest_poi(poi_idx.GuidArray, x, y, result)
+    result = ScanNearPOI(x, y, poi_idx, count, max_distance, cache_distances)
+    guid_slice = translate_guid(poi_idx.GuidArray, result, x, y)
+
     return
 }
 
@@ -160,8 +158,11 @@ func fetch_from_index_by_count(poi_1d_slice Poi_1d_slice_t, v float64, count int
                func(i int)bool {
                    return poi_1d_slice[i].XY >= v
                })
-    if pos >= len(poi_1d_slice) || poi_1d_slice[pos].XY != v {
-        return nil, 0
+    if pos >= len(poi_1d_slice) {
+        return []uint32{poi_1d_slice[len(poi_1d_slice)-1].ID}, 0
+    }
+    if pos <= 0 && poi_1d_slice[0].XY != v {
+        return []uint32{poi_1d_slice[0].ID}, 0
     }
 
     var start, end int

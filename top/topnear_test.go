@@ -112,7 +112,37 @@ func Test_fetch_from_index_by_count(t *testing.T) {
 
     result, retval = fetch_from_index_by_count(index_slice, -3.0, 2)
     assert(retval == 0)
-    assert(result == nil)
+    assert(len(result) == 1)
+    assert(result[0] == 0)
+
+    index_slice = Poi_1d_slice_t {
+        {1.0, 0},
+        {2.0, 1},
+        {2.2, 2},
+        {3.3, 3},
+    }
+    result, retval = fetch_from_index_by_count(index_slice, 3.0, 1)
+    assert(retval == 0)
+    assert(len(result) == 2)
+    assert(result[0] == 2)
+    assert(result[1] == 3)
+
+    result, retval = fetch_from_index_by_count(index_slice, 1.0, 1)
+    assert(retval == 0)
+    assert(len(result) == 2)
+    assert(result[0] == 0)
+    assert(result[1] == 1)
+
+    result, retval = fetch_from_index_by_count(index_slice, 3.3, 1)
+    assert(retval == 0)
+    assert(len(result) == 2)
+    assert(result[0] == 2)
+    assert(result[1] == 3)
+
+    result, retval = fetch_from_index_by_count(index_slice, 3.5, 1)
+    assert(retval == 0)
+    assert(len(result) == 1)
+    assert(result[0] == 3)
 }
 
 /* }}} */
@@ -462,6 +492,74 @@ func Test_translate_guid(t *testing.T) {
     assert(len(result) == 2)
     assert(result[0] == 1111)
     assert(result[1] == 3333)
+}
+
+/* }}} */
+/* {{{ TestFetchNearPOI(t *testing.T)  */
+
+func TestFetchNearPOI(t *testing.T) {
+    assert := build_assert_func("FetchNearPOI() failed", t)
+
+    poi_idx := new(POI_index)
+    poi_idx.PoiXIdx = make(Poi_1d_slice_t, 6)
+    poi_idx.PoiYIdx = make(Poi_1d_slice_t, 6)
+    poi_idx.GuidArray = make([]POI_Item, 6)
+
+    poi_idx.PoiXIdx[0].XY = 2
+    poi_idx.PoiXIdx[0].ID = 5
+    poi_idx.PoiXIdx[1].XY = 2.5
+    poi_idx.PoiXIdx[1].ID = 2
+    poi_idx.PoiXIdx[2].XY = 4-math.Sqrt(2)
+    poi_idx.PoiXIdx[2].ID = 3
+    poi_idx.PoiXIdx[3].XY = 2.6
+    poi_idx.PoiXIdx[3].ID = 4
+    poi_idx.PoiXIdx[4].XY = 3
+    poi_idx.PoiXIdx[4].ID = 0
+    poi_idx.PoiXIdx[5].XY = 4
+    poi_idx.PoiXIdx[5].ID = 1
+
+    poi_idx.PoiYIdx[0].XY = 2
+    poi_idx.PoiYIdx[0].ID = 5
+    poi_idx.PoiYIdx[1].XY = 2.5
+    poi_idx.PoiYIdx[1].ID = 2
+    poi_idx.PoiYIdx[2].XY = 4-math.Sqrt(2)
+    poi_idx.PoiYIdx[2].ID = 3
+    poi_idx.PoiYIdx[3].XY = 2.6
+    poi_idx.PoiYIdx[3].ID = 4
+    poi_idx.PoiYIdx[4].XY = 5
+    poi_idx.PoiYIdx[4].ID = 0
+    poi_idx.PoiYIdx[5].XY = 6
+    poi_idx.PoiYIdx[5].ID = 1
+
+    poi_idx.GuidArray[0].GUID = 0
+    poi_idx.GuidArray[0].X = 3
+    poi_idx.GuidArray[0].Y = 5
+    poi_idx.GuidArray[1].GUID = 1
+    poi_idx.GuidArray[1].X = 4
+    poi_idx.GuidArray[1].Y = 6
+    poi_idx.GuidArray[2].GUID = 2
+    poi_idx.GuidArray[2].X = 2.5
+    poi_idx.GuidArray[2].Y = 2.5
+    poi_idx.GuidArray[3].GUID = 3
+    poi_idx.GuidArray[3].X = 4-math.Sqrt(2)
+    poi_idx.GuidArray[3].Y = 4-math.Sqrt(2)
+    poi_idx.GuidArray[4].GUID = 4
+    poi_idx.GuidArray[4].X = 2.6
+    poi_idx.GuidArray[4].Y = 2.6
+    poi_idx.GuidArray[5].GUID = 5
+    poi_idx.GuidArray[5].X = 2
+    poi_idx.GuidArray[5].Y = 2
+
+    guid_slice, err := FetchNearPOI(poi_idx, 4, 4, 1)
+    assert(err == 0)
+    assert(len(guid_slice) == 1)
+    assert(guid_slice[0] == 0)
+
+    guid_slice, err = FetchNearPOI(poi_idx, 4, 4, 2)
+    assert(err == 0)
+    assert(len(guid_slice) == 2)
+    assert(guid_slice[0] == 0)
+    assert(guid_slice[1] == 4)
 }
 
 /* }}} */
