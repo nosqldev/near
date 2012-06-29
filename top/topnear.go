@@ -14,7 +14,8 @@ package top
 import(
     "sort"
     "math"
-    /*"fmt"*/
+    "fmt"
+    "time"
     . "../index"
 )
 
@@ -33,6 +34,7 @@ type sort_poi_slice_t []sort_poi_t
 func FetchNearPOI(poi_idx *POI_index, x float64, y float64, count int) (guid_slice []uint64, retval int) {
     retval = 0
 
+    start_time := time.Now()
     if count > max_near_poi_count/2 { return nil, -100 }
     result_x, retcode := fetch_from_index_by_count(poi_idx.PoiXIdx, x, count)
     if retcode != 0 { return nil, -1 }
@@ -41,6 +43,11 @@ func FetchNearPOI(poi_idx *POI_index, x float64, y float64, count int) (guid_sli
     result := union(result_x, result_y)
     _, distance, cache_distances := find_farthest_poi(poi_idx.GuidArray, x, y, result)
     //fmt.Println("$$$", count, distance, result, result_x, result_y)
+
+    end_time := time.Now()
+    fmt.Println("[1] Elapsed:", end_time.Sub(start_time))
+
+    start_time = time.Now()
     var delta float64 = 0.128
     var max_distance float64 = distance
     for i := 0; i < 10; i++ {
@@ -49,7 +56,13 @@ func FetchNearPOI(poi_idx *POI_index, x float64, y float64, count int) (guid_sli
         max_distance = distance + delta * math.Pow(2, float64(i))
         //fmt.Println(max_distance, max_distance - distance)
     }
+    end_time = time.Now()
+    fmt.Println("[5] Elapsed:", end_time.Sub(start_time))
+
+    start_time = time.Now()
     guid_slice = translate_guid(poi_idx.GuidArray, result, x, y)
+    end_time = time.Now()
+    fmt.Println("[6] Elapsed:", end_time.Sub(start_time))
 
     return
 }
@@ -58,17 +71,32 @@ func FetchNearPOI(poi_idx *POI_index, x float64, y float64, count int) (guid_sli
 /* {{{ ScanNearPOI(x float64, y float64, poi_idx *POI_index, count int, max_distance float64, cache_distances distanceTable_t) []uint32  */
 
 func ScanNearPOI(x float64, y float64, poi_idx *POI_index, count int, max_distance float64, cache_distances distanceTable_t) []uint32 {
+    start_time := time.Now()
+
     result_x := fetch_from_index_by_range(poi_idx.PoiXIdx, x, max_distance)
     if result_x == nil { return nil }
     result_y := fetch_from_index_by_range(poi_idx.PoiYIdx, y, max_distance)
     if result_y == nil { return nil }
 
+    end_time := time.Now()
+    fmt.Println("[2] Elapsed:", end_time.Sub(start_time))
+    start_time = time.Now()
+
     result := intersect(result_x, result_y)
+
+    end_time = time.Now()
+    fmt.Println("[2.1] Elapsed:", end_time.Sub(start_time))
+    start_time = time.Now()
+
     if result == nil { return nil }
     result = filter_by_distance(x, y, poi_idx.GuidArray, result, max_distance, cache_distances)
 
+    end_time = time.Now()
+    fmt.Println("[3] Elapsed:", end_time.Sub(start_time))
+
     //fmt.Println("###", count, max_distance, len(result), len(result_x), len(result_y))
 
+    start_time = time.Now()
     var result_size int
     if count == 0 {
         result_size = len(result)
@@ -76,6 +104,9 @@ func ScanNearPOI(x float64, y float64, poi_idx *POI_index, count int, max_distan
         result_size = int(math.Min(float64(count), float64(len(result))))
     }
     sortby_distance(poi_idx.GuidArray, result, cache_distances)
+
+    end_time = time.Now()
+    fmt.Println("[4] Elapsed:", end_time.Sub(start_time))
 
     return result[:result_size]
 }
