@@ -26,7 +26,7 @@ func main() {
     poi_idx, ret := index.LoadPOI(file)
     if ret != 0 { fmt.Println("LoadPOI() failed: ", ret); os.Exit(1); }
 
-    fmt.Println(len(poi_idx.GuidArray), "have been loaded")
+    fmt.Println(len(poi_idx.GuidArray), "have been loaded", poi_idx.PoiXIdx[0], poi_idx.PoiXIdx[len(poi_idx.PoiXIdx)-1], poi_idx.PoiYIdx[0], poi_idx.PoiYIdx[len(poi_idx.PoiYIdx)-1])
 
     var x, y float64
     var cnt int
@@ -42,8 +42,8 @@ func main() {
         }
         fmt.Printf("--- amount of results: %d---\n", len(guid_slice))
         for _, guid := range guid_slice {
-            /*fmt.Printf("guid = %x, x = %f, y = %f\n", guid, poi_idx.GuidArray[guid].X, poi_idx.GuidArray[guid].Y)*/
-            fmt.Printf("guid = %x\n", guid)
+           /*fmt.Printf("guid = %x, x = %f, y = %f\n", guid, poi_idx.GuidArray[guid].X, poi_idx.GuidArray[guid].Y)*/
+           fmt.Printf("guid = %x, distance = %f\n", guid.GUID, guid.Distance)
         }
         end_time := time.Now()
         elapsed_time := end_time.Sub(start_time)

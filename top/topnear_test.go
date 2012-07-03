@@ -476,6 +476,8 @@ func Test_sortby_distance(t *testing.T) {
 
 func Test_translate_guid(t *testing.T) {
     assert := build_assert_func("translate_guid() failed", t)
+    var cache distanceTable_t = make(distanceTable_t)
+
     guid_slice := make([]POI_Item, 3)
     guid_slice[0].GUID = 1111
     guid_slice[0].X = 1
@@ -487,30 +489,30 @@ func Test_translate_guid(t *testing.T) {
     guid_slice[2].X = 1
     guid_slice[2].Y = 1
 
-    result := translate_guid(guid_slice, []uint32{0, 2, 1}, 0, 0)
+    result := translate_guid(guid_slice, []uint32{0, 2, 1}, 0, 0, cache)
     assert(len(result) == 3)
-    assert(result[0] == 1111)
-    assert(result[1] == 3333)
-    assert(result[2] == 2222)
+    assert(result[0].GUID == 1111)
+    assert(result[1].GUID == 3333)
+    assert(result[2].GUID == 2222)
 
-    result = translate_guid(guid_slice, []uint32{0, 2, 1}, 1, 1)
+    result = translate_guid(guid_slice, []uint32{0, 2, 1}, 1, 1, cache)
     assert(len(result) == 2)
-    assert(result[0] == 1111)
-    assert(result[1] == 2222)
+    assert(result[0].GUID == 1111)
+    assert(result[1].GUID == 2222)
 
-    result = translate_guid(guid_slice, []uint32{0, 2}, 0, 0)
+    result = translate_guid(guid_slice, []uint32{0, 2}, 0, 0, cache)
     assert(len(result) == 2)
-    assert(result[0] == 1111)
-    assert(result[1] == 3333)
+    assert(result[0].GUID == 1111)
+    assert(result[1].GUID == 3333)
 
-    result = translate_guid(guid_slice, []uint32{0, 2}, 1, 1)
+    result = translate_guid(guid_slice, []uint32{0, 2}, 1, 1, cache)
     assert(len(result) == 1)
-    assert(result[0] == 1111)
+    assert(result[0].GUID == 1111)
 
-    result = translate_guid(guid_slice, []uint32{0, 2}, 1, 2)
+    result = translate_guid(guid_slice, []uint32{0, 2}, 1, 2, cache)
     assert(len(result) == 2)
-    assert(result[0] == 1111)
-    assert(result[1] == 3333)
+    assert(result[0].GUID == 1111)
+    assert(result[1].GUID == 3333)
 }
 
 /* }}} */
@@ -572,13 +574,13 @@ func TestFetchNearPOI(t *testing.T) {
     guid_slice, err := FetchNearPOI(poi_idx, 4, 4, 1)
     assert(err == 0)
     assert(len(guid_slice) == 1)
-    assert(guid_slice[0] == 0)
+    assert(guid_slice[0].GUID == 0)
 
     guid_slice, err = FetchNearPOI(poi_idx, 4, 4, 2)
     assert(err == 0)
     assert(len(guid_slice) == 2)
-    assert(guid_slice[0] == 0)
-    assert(guid_slice[1] == 4)
+    assert(guid_slice[0].GUID == 0)
+    assert(guid_slice[1].GUID == 4)
 }
 
 /* }}} */
@@ -626,7 +628,7 @@ func TestFetchNearPOI_boundary_cond(t *testing.T) {
     guid_slice, err := FetchNearPOI(poi_idx, 0, 0, 1)
     assert(err == 0)
     assert(len(guid_slice) == 1)
-    assert(guid_slice[0] == 2)
+    assert(guid_slice[0].GUID == 2)
 
     poi_idx.GuidArray = append(poi_idx.GuidArray, POI_Item{4, 1, 2})
     poi_idx.PoiXIdx   = make(Poi_1d_slice_t, 5)
@@ -657,7 +659,7 @@ func TestFetchNearPOI_boundary_cond(t *testing.T) {
     guid_slice, err = FetchNearPOI(poi_idx, 0, 0, 1)
     assert(err == 0)
     assert(len(guid_slice) == 1)
-    assert(guid_slice[0] == 4)
+    assert(guid_slice[0].GUID == 4)
 }
 
 /* }}} */
@@ -712,10 +714,10 @@ func TestFetchNearPOI_NotEnoughPOI(t *testing.T) {
     guid_slice, err := FetchNearPOI(poi_idx, 1, 1, 4)
     assert(err == 0)
     assert(len(guid_slice) == 4)
-    assert(guid_slice[0] == 0)
-    assert(guid_slice[1] == 2)
-    assert(guid_slice[2] == 3)
-    assert(guid_slice[3] == 4)
+    assert(guid_slice[0].GUID == 0)
+    assert(guid_slice[1].GUID == 2)
+    assert(guid_slice[2].GUID == 3)
+    assert(guid_slice[3].GUID == 4)
 }
 
 /* }}} */

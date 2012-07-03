@@ -28,28 +28,46 @@ type sort_poi_t struct {
 }
 type sort_poi_slice_t []sort_poi_t
 
+type NearPOI_t struct {
+    GUID uint64
+    Distance float64
+}
+
 /* {{{ FetchNearPOI(poi_idx *POI_index, x float64, y float64, count int) (guid_slice []uint64, retval int)  */
 
-func FetchNearPOI(poi_idx *POI_index, x float64, y float64, count int) (guid_slice []uint64, retval int) {
+func FetchNearPOI(poi_idx *POI_index, x float64, y float64, count int) (near_poi []NearPOI_t, retval int) {
     retval = 0
 
     if count > max_near_poi_count/2 { return nil, -100 }
+    if count == 0 { return nil, -99 }
     result_x, retcode := fetch_from_index_by_count(poi_idx.PoiXIdx, x, count)
     if retcode != 0 { return nil, -1 }
     result_y, retcode := fetch_from_index_by_count(poi_idx.PoiYIdx, y, count)
     if retcode != 0 { return nil, -2 }
     result := union(result_x, result_y)
     _, distance, cache_distances := find_farthest_poi(poi_idx.GuidArray, x, y, result)
-    //fmt.Println("$$$", count, distance, result, result_x, result_y)
-    var delta float64 = 0.128
+
+    /*
+     *fmt.Printf("far_poi = %v, distance = %f, len(result) = %v, len(result_x) = %v, len(result_y) = %v\n", fpoi, distance, len(result), len(result_x), len(result_y))
+     *fmt.Println("######### X ###########")
+     *for _, x := range result_x { fmt.Printf("%v : %v\t", x, poi_idx.GuidArray[x].X) }
+     *fmt.Println("")
+     *fmt.Println("######### Y ###########")
+     *for _, y := range result_y { fmt.Printf("%v : %v\t", y, poi_idx.GuidArray[y].Y) }
+     *fmt.Println("")
+     */
+
+    var delta float64 = 0.01
     var max_distance float64 = distance
     for i := 0; i < 10; i++ {
         result = ScanNearPOI(x, y, poi_idx, count, max_distance, cache_distances)
         if len(result) >= count { break }
         max_distance = distance + delta * math.Pow(2, float64(i))
+        /*if i == 9 { fmt.Println("max scan reached", max_distance, max_distance - distance) }*/
         //fmt.Println(max_distance, max_distance - distance)
     }
-    guid_slice = translate_guid(poi_idx.GuidArray, result, x, y)
+    /*fmt.Println("max_distance:", max_distance, max_distance - distance)*/
+    near_poi = translate_guid(poi_idx.GuidArray, result, x, y, cache_distances)
 
     return
 }
@@ -67,7 +85,7 @@ func ScanNearPOI(x float64, y float64, poi_idx *POI_index, count int, max_distan
     if result == nil { return nil }
     result = filter_by_distance(x, y, poi_idx.GuidArray, result, max_distance, cache_distances)
 
-    //fmt.Println("###", count, max_distance, len(result), len(result_x), len(result_y))
+    /*fmt.Println("*****", count, max_distance, len(result), len(result_x), len(result_y))*/
 
     var result_size int
     if count == 0 {
@@ -217,6 +235,8 @@ func fetch_from_index_by_count(poi_1d_slice Poi_1d_slice_t, v float64, count int
         result = append(result, poi_1d_slice[i].ID)
     }
 
+    /*fmt.Println("fetch by count: ", start, end, v, result)*/
+
     return result, retval
 }
 
@@ -297,17 +317,17 @@ func filter_by_distance(x float64, y float64, guid_slice []POI_Item, ids []uint3
 }
 
 /* }}} */
-/* {{{ translate_guid(guid_slice []POI_Item, ids []uint32, x float64, y float64) []uint64  */
+/* {{{ translate_guid(guid_slice []POI_Item, ids []uint32, x float64, y float64, cache_distances distanceTable_t) []NearPOI_t  */
 
-func translate_guid(guid_slice []POI_Item, ids []uint32, x float64, y float64) []uint64 {
-    var result []uint64 = make([]uint64, 0, len(ids))
+func translate_guid(guid_slice []POI_Item, ids []uint32, x float64, y float64, cache_distances distanceTable_t) []NearPOI_t {
+    var result []NearPOI_t = make([]NearPOI_t, 0, len(ids))
 
     for _, id := range ids {
         if guid_slice[id].X == x && guid_slice[id].Y == y {
             /* filter the querying POI */
             continue
         }
-        result = append(result, guid_slice[id].GUID)
+        result = append(result, NearPOI_t{guid_slice[id].GUID, cache_distances[guid_slice[id]]})
     }
 
     return result
